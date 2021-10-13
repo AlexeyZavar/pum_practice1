@@ -260,15 +260,20 @@ def simplify(arg_names: List[str], dnf_expressions: List[List[str]]):
             break
         new_terms = []
 
-        for minterm in minterms.values():
+        values = list(minterms.values())
+        l = len(values)
+
+        for i in range(l):
+            minterm = values[i]
             replaced = 0
 
             for left_term in minterm:
-                for minterm2 in minterms.values():
-                    for right_term in minterm2:
-                        if left_term == right_term:
-                            continue
+                for j in range(l):
+                    minterm2 = values[j]
+                    if minterm == minterm2 or i - 3 > j:
+                        continue
 
+                    for right_term in minterm2:
                         res = None
 
                         for i in range(len(left_term)):
@@ -293,7 +298,7 @@ def simplify(arg_names: List[str], dnf_expressions: List[List[str]]):
                 if replaced == 0:
                     implicants.add(left_term)
 
-        prev_terms = minterms.copy()
+        prev_terms = minterms
         minterms = dict()
         for item in new_terms:
             count = item.count('1')
