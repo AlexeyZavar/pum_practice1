@@ -206,6 +206,17 @@ def print_dnf_step(method: str, dnf_expressions: BooleanExpression):
     print_step(method, stringify_dnf(dnf_expressions))
 
 
+def regenerate_table(simplified: BooleanExpression, hacked_table: List[List[bool]], arg_names: List[str]):
+    hacked_table.clear()
+
+    exp = stringify_dnf(simplified).replace(TOKEN_NOT, "not ").replace('*', ' and ').replace('+', ' or ')
+    f = eval(f'''lambda {", ".join(arg_names)}: {exp}''')
+
+    for item in generate_args(len(arg_names)):
+        res = [*item, f(*item)]
+        hacked_table.append(res)
+
+
 #
 # Simplification
 #
@@ -257,7 +268,7 @@ def petric(vars, step2):
         res[1] = multiply(res[0], res[1])
         res.pop(0)
 
-    final = [min(res[0], key=len)][0]
+    final = min(res[0], key=len)
     super_final = [letters[item] for item in final]
 
     return super_final, fucked
@@ -368,14 +379,16 @@ def ege(arg_names: List[str], hacked_table: List[List[bool]], sdnf: BooleanExpre
     pos = list(filter(lambda x: x[-1], hacked_table))
     neg = list(filter(lambda x: not x[-1], hacked_table))
 
-    if len(pos) > len(neg):
+    if len(neg) > len(pos) >= len(arg_names) - 1:
         shared = pos
         is_neg = False
-    else:
+    elif len(pos) > len(neg) >= len(arg_names) - 1:
         shared = neg
         is_neg = True
+    else:
+        shared = None
 
-    if len(shared) < len(arg_names) + 1:
+    if shared is None or len(arg_names) > 4:
         return f'{LIGHT_RED}Unable to generate EGE task for this function{RESET}'
 
     s = f'Логическая функция F задаётся выражением {stringify_dnf(sdnf)}. Ниже приведён фрагмент таблицы ' \
@@ -469,6 +482,22 @@ def hack(f: BooleanFunction):
 
         print()
         print()
+
+        new_arg_names = []
+        for arg in arg_names:
+            for item in simplified:
+                for var in item:
+                    if arg == var.replace(TOKEN_NOT, ''):
+                        new_arg_names.append(arg)
+                        break
+                if arg in new_arg_names:
+                    break
+
+        arg_names = new_arg_names
+        arg_count = len(arg_names)
+        print_step('Nonfictive', ', '.join(arg_names))
+
+        regenerate_table(simplified, hacked_table, arg_names)
 
         task = ege(arg_names, hacked_table, simplified)
         print(LIGHT_BLUE + task + RESET)

@@ -66,6 +66,22 @@ def ege1(x, y, z, w):
     return (w or y) and (y or not x) and (z or not y)
 
 
+def ege2(x, y, z, w):
+    return (not x or y or z) and (x or not z or not w)
+
+
+def ege3(x, y, z, w):
+    return (x and not y) or (y == z) or not w
+
+
+def ege4(x, y, z):
+    return (not x or not z) <= (x == y)
+
+
+def ege5(x, y, z, w):
+    return ((x <= z) and (z <= w)) or (y == (x or z))
+
+
 def denchik1(a, b, c):
     return a and (b or c)
 
