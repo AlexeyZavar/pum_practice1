@@ -153,6 +153,7 @@ class Table:
 
         s += '└'
         s += '┴'.join(['─' * self.__column_size for _ in self.headers])
+
         s += '┘'
         return s
 
