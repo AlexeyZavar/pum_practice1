@@ -274,11 +274,7 @@ def simplify(arg_names: List[str], dnf_expressions: BooleanExpression):
 
     implicants = set()
     prev_bits = None
-    while 1:
-
-        if bits == prev_bits:
-            break
-
+    while bits != prev_bits:
         new_bits = set()
 
         for item1 in bits:
