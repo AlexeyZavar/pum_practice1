@@ -235,78 +235,54 @@ def petric(vars, step2):
 
 
 def simplify(arg_names: List[str], dnf_expressions: List[List[str]]):
-    bits = []
+    bits = set()
     for item in dnf_expressions:
         b = ''
         for var in item:
             b += '0' if var.startswith(TOKEN_NOT) else '1'
 
-        bits.append(b)
-
-    minterms = dict()
-    for item in bits:
-        count = item.count('1')
-
-        if count in minterms:
-            minterms[count].append(item)
-        else:
-            minterms[count] = [item]
+        bits.add(b)
 
     implicants = set()
-    prev_terms = []
-
+    prev_bits = None
     while 1:
-        if prev_terms == minterms:
+
+        if bits == prev_bits:
             break
-        new_terms = []
 
-        values = list(minterms.values())
-        l = len(values)
+        new_bits = set()
 
-        for i in range(l):
-            minterm = values[i]
-            replaced = 0
+        for item1 in bits:
+            replaced = set()
 
-            for left_term in minterm:
-                for j in range(l):
-                    minterm2 = values[j]
-                    if minterm == minterm2 or i - 3 > j:
+            for item2 in bits:
+                res = None
+                for i in range(len(item1)):
+                    l1 = item1[i]
+                    l2 = item2[i]
+                    if l1 == l2:
                         continue
-
-                    for right_term in minterm2:
+                    elif l1 == get_alter_value(l2) or l1 == '-' or l2 == '-':
+                        if res is None:
+                            res = i
+                        else:
+                            res = None
+                            break
+                    else:
                         res = None
+                        break
 
-                        for i in range(len(left_term)):
-                            if left_term[i] == right_term[i]:
-                                pass
-                            elif left_term[i] == get_alter_value(right_term[i]) or left_term[i] == '-' or right_term[
-                                i] == '-':
-                                if res is None:
-                                    res = i
-                                else:
-                                    res = None
-                                    break
-                            else:
-                                res = None
-                                break
+                if res is not None:
+                    s = item2[0:res] + '-' + item2[res + 1:]
+                    replaced.add(s)
 
-                        if res is not None:
-                            replaced += 1
-                            s = right_term[0:res] + '-' + right_term[res + 1:]
-                            new_terms.append(s)
-
-                if replaced == 0:
-                    implicants.add(left_term)
-
-        prev_terms = minterms
-        minterms = dict()
-        for item in new_terms:
-            count = item.count('1')
-
-            if count in minterms:
-                minterms[count].append(item)
+            if len(replaced) == 0:
+                implicants.add(item1)
             else:
-                minterms[count] = [item]
+                new_bits.update(replaced)
+
+        prev_bits = bits
+        bits = new_bits
 
     vars = []
     for s in implicants:
