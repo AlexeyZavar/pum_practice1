@@ -1,4 +1,5 @@
 import ctypes
+import random
 import sys
 from itertools import product
 from string import ascii_uppercase
@@ -51,6 +52,7 @@ if sys.platform == "win32":
 #
 BooleanFunction = Union[FunctionType, Callable[[bool], bool]]
 BooleanArguments = List[Tuple[bool]]
+BooleanExpression = List[List[str]]
 
 #
 # Constants
@@ -80,12 +82,34 @@ def timeit(f: FunctionType):
 
 
 #
+# Wrapper for logo
+#
+def logo(f: FunctionType):
+    def wrapper(*args, **kwargs):
+        print('''
+Bool_hacker by
+           _                     ______                     
+     /\   | |                   |___  /                     
+    /  \  | | _____  _____ _   _   / / __ ___   ____ _ _ __ 
+   / /\ \ | |/ _ \ \/ / _ \ | | | / / / _` \ \ / / _` | '__|
+  / ____ \| |  __/>  <  __/ |_| |/ /_| (_| |\ V / (_| | |   
+ /_/    \_\_|\___/_/\_\___|\__, /_____\__,_| \_/ \__,_|_|   
+                            __/ |                           
+                           |___/                            
+''')
+        f(*args, **kwargs)
+
+    return wrapper
+
+
+#
 # Helper classes
 #
 class Table:
-    def __init__(self, headers: Iterable[str]):
+    def __init__(self, headers: Iterable[str], append_result=True):
         self.headers = list(headers)
-        self.headers.append('●')
+        if append_result:
+            self.headers.append('●')
 
         self.__column_size = len(max(headers, key=lambda x: len(x))) + 2
         self.__column_count = len(self.headers)
@@ -174,9 +198,12 @@ def print_step(step: str, result: str):
     print(f'{STEP_DEC}{step:<17}{RESET}: {RESULT_DEC}{result}{RESET}')
 
 
-def print_dnf_step(method: str, dnf_expressions: List[List[str]]):
-    s = '(' + f') {TOKEN_OR} ('.join([f' {TOKEN_AND} '.join(item) for item in dnf_expressions]).strip() + ')'
-    print_step(method, s)
+def stringify_dnf(dnf_expressions: BooleanExpression):
+    return '(' + f') {TOKEN_OR} ('.join([f' {TOKEN_AND} '.join(item) for item in dnf_expressions]).strip() + ')'
+
+
+def print_dnf_step(method: str, dnf_expressions: BooleanExpression):
+    print_step(method, stringify_dnf(dnf_expressions))
 
 
 #
@@ -212,6 +239,7 @@ def multiply(x, y):
 def petric(vars, step2):
     letters = {ascii_uppercase[i]: var for i, var in enumerate(vars)}
 
+    fucked = []
     res = []
     for i in range(len(step2[0])):
         exp = []
@@ -220,7 +248,8 @@ def petric(vars, step2):
                 exp.append(ascii_uppercase[j])
 
         if len(exp) == 0:
-            print('fuck?? todo')
+            print('fuck happened', i)
+            fucked.append(i)
         else:
             res.append(exp)
 
@@ -231,10 +260,10 @@ def petric(vars, step2):
     final = [min(res[0], key=len)][0]
     super_final = [letters[item] for item in final]
 
-    return super_final
+    return super_final, fucked
 
 
-def simplify(arg_names: List[str], dnf_expressions: List[List[str]]):
+def simplify(arg_names: List[str], dnf_expressions: BooleanExpression):
     bits = set()
     for item in dnf_expressions:
         b = ''
@@ -302,13 +331,16 @@ def simplify(arg_names: List[str], dnf_expressions: List[List[str]]):
             if all(arg in orig for arg in impl):
                 step2[i][j] = True
 
-    sdnf = petric(vars, step2)
-    print_dnf_step('Simplified', sdnf)
+    sdnf, fucked = petric(vars, step2)
+
+    for item in fucked:
+        print('fuck iter', item, dnf_expressions[item])
+        sdnf.append(dnf_expressions[item])
 
     return sdnf
 
 
-def sheffer(sdnf):
+def sheffer(sdnf: BooleanExpression):
     sheffer_sdnf = [item.copy() for item in sdnf]
 
     for i in range(len(sheffer_sdnf)):
@@ -334,8 +366,74 @@ def sheffer(sdnf):
 
 
 #
+# EGE task generator
+#
+def ege(arg_names: List[str], hacked_table: List[List[bool]], sdnf: BooleanExpression):
+    pos = list(filter(lambda x: x[-1], hacked_table))
+    neg = list(filter(lambda x: not x[-1], hacked_table))
+
+    if len(pos) > len(neg):
+        shared = pos
+        is_neg = False
+    else:
+        shared = neg
+        is_neg = True
+
+    if len(shared) < len(arg_names) + 1:
+        return f'{LIGHT_RED}Unable to generate EGE task for this function{RESET}'
+
+    s = f'Логическая функция F задаётся выражением {stringify_dnf(sdnf)}. Ниже приведён фрагмент таблицы ' \
+        f'истинности функции F, содержащий все наборы аргументов, при которых функция F {"отрицательна" if is_neg else "положительна"}. Определите, ' \
+        f'какому столбцу таблицы истинности функции F соответствует каждая из переменных {", ".join(arg_names)}. Все ' \
+        f'строки в представленном фрагменте разные. '
+
+    s = ' ' + '.\n'.join(s.split('.'))
+    s += RESET
+
+    s += '\n'
+
+    hidden_names = ['*' for _ in arg_names]
+    table = Table(hidden_names, False)
+    table_header = table.generate_top()
+    table_bottom = table.generate_bottom()
+
+    s += table_header + '\n'
+
+    random.shuffle(shared)
+
+    for row in shared:
+        row.pop()
+
+    order = list(arg_names)
+    random.shuffle(order)
+
+    for row in shared:
+        copy = list(row)
+        for i in range(len(row)):
+            row[i] = copy[order.index(arg_names[i])]
+
+    not_hidden = True
+    for row_i, row in enumerate(shared):
+        for i in range(len(row)):
+            if random.uniform(0.0, 1.0) > 0.9 and not_hidden or (
+                    row_i == len(shared) - 1 and i == len(row) - 1 and not_hidden):
+                row[i] = ' '
+                not_hidden = False
+        s += table.generate_row(*row) + '\n'
+
+    s += table_bottom + '\n'
+
+    s += '\n\n\n\n'
+    s += f'Ответ: {" ".join(order)}'
+    s += '\n'
+
+    return s
+
+
+#
 # Entry point
 #
+@logo
 @timeit
 def hack(f: BooleanFunction):
     arg_count, arg_names = inspect_args(f)
@@ -346,8 +444,10 @@ def hack(f: BooleanFunction):
     print(table.generate_top())
 
     dnf_expressions = []
+    hacked_table = []
     for arg in generate_args(arg_count):
-        res = f(*arg)
+        res: bool = f(*arg)
+        hacked_table.append([*arg, res])
         print(table.generate_row(*arg, res))
 
         if res:
@@ -366,6 +466,13 @@ def hack(f: BooleanFunction):
     else:
         print_dnf_step('DNF', dnf_expressions)
         print()
-        res = simplify(arg_names, dnf_expressions)
+        simplified = simplify(arg_names, dnf_expressions)
+        print_dnf_step('Simplified', simplified)
 
-        sheffer(res)
+        sheffer(simplified)
+
+        print()
+        print()
+
+        task = ege(arg_names, hacked_table, simplified)
+        print(LIGHT_BLUE + task + RESET)
