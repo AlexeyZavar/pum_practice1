@@ -355,7 +355,7 @@ def sheffer(sdnf: BooleanExpression):
 
     final = []
     for item in res:
-        s = f'({item} {TOKEN_SHEFFER} {item})'
+        s = f'(({item}) {TOKEN_SHEFFER} ({item}))'
         final.append(s)
 
     final_res = f' {TOKEN_SHEFFER} '.join(final)
