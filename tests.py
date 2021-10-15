@@ -106,5 +106,12 @@ def wiki3(x, y, z, t):
     return (y and not z and not t) or (x and not y) or (x and z)
 
 
+#
+# Performance tests
+#
 def long_running1(x, y, z, t, e):
     return (y and not z and not t) or (x and not y) or (x and z) or e
+
+
+def long_running2(x, y, z, t, e, w):
+    return (x and y or z) or (t and w) or w and (e and x)
