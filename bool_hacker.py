@@ -225,26 +225,17 @@ def get_alter_value(s: str):
     return '0' if s == '1' else '1'
 
 
-def mul(x, y):
+def multiply(first, second):
     res = []
-    for i in x:
-        if len(i) == 2 and i[0] in y:
-            return []
-        else:
-            res.append(i)
-    for i in y:
-        if i not in res:
-            res.append(i)
-    return res
 
+    for left in first:
+        for right in second:
+            r = left
+            if right not in r:
+                r += right
+            if r not in res:
+                res.append(r)
 
-def multiply(x, y):
-    res = []
-    for i in x:
-        for j in y:
-            tmp = mul(i, j)
-            if len(tmp) != 0:
-                res.append(tmp)
     return res
 
 
@@ -260,14 +251,13 @@ def petric(vars, step2):
                 exp.append(ascii_uppercase[j])
 
         if len(exp) == 0:
-            print('fuck happened', i)
             fucked.append(i)
         else:
             res.append(exp)
 
     while len(res) > 1:
-        res[1] = multiply(res[0], res[1])
-        res.pop(0)
+        res[0] = multiply(res[0], res[1])
+        del res[1]
 
     final = min(res[0], key=len)
     super_final = [letters[item] for item in final]

@@ -115,3 +115,7 @@ def long_running1(x, y, z, t, e):
 
 def long_running2(x, y, z, t, e, w):
     return (x and y or z) or (t and w) or w and (e and x)
+
+
+def long_running3(x, y, z, t, e, w, a):
+    return (x and y or z) or (t and w) or w and (e and x) or (e and a)
