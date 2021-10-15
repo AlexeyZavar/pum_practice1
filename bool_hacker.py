@@ -284,69 +284,42 @@ def simplify(arg_names: List[str], dnf_expressions: BooleanExpression):
 
         bits.add(b)
 
-    groups = dict()
-    for item in bits:
-        count = item.count('1')
-        if count in groups:
-            groups[count].append(item)
-        else:
-            groups[count] = [item]
-
     implicants = set()
-    prev_groups = None
-    while groups != prev_groups:
-        new_groups = dict()
-        new_set = set()
+    prev_bits = None
+    while bits != prev_bits:
+        new_bits = set()
 
-        for i, group1 in groups.items():
-            groups_2 = []
-            if i + 1 in groups:
-                groups_2.append(groups[i + 1])
-            if i - 1 in groups:
-                groups_2.append(groups[i - 1])
+        for item1 in bits:
+            replaced = set()
 
-            if len(groups_2) == 0:
-                implicants.update(group1)
-                continue
-
-            for item1 in group1:
-                replaced = set()
-
-                for group2 in groups_2:
-                    for item2 in group2:
+            for item2 in bits:
+                res = None
+                for i in range(len(item1)):
+                    l1 = item1[i]
+                    l2 = item2[i]
+                    if l1 == l2:
+                        continue
+                    elif l1 == get_alter_value(l2) or l1 == '-' or l2 == '-':
+                        if res is None:
+                            res = i
+                        else:
+                            res = None
+                            break
+                    else:
                         res = None
-                        for j in range(len(item1)):
-                            l1 = item1[j]
-                            l2 = item2[j]
-                            if l1 == l2:
-                                continue
-                            elif l1 == get_alter_value(l2) or l1 == '-' or l2 == '-':
-                                if res is None:
-                                    res = j
-                                else:
-                                    res = None
-                                    break
-                            else:
-                                res = None
-                                break
+                        break
 
-                        if res is not None:
-                            s = item2[0:res] + '-' + item2[res + 1:]
-                            replaced.add(s)
+                if res is not None:
+                    s = item2[0:res] + '-' + item2[res + 1:]
+                    replaced.add(s)
 
-                if len(replaced) == 0:
-                    implicants.add(item1)
-                new_set.update(replaced)
-
-        for item in new_set:
-            count = item.count('1')
-            if count in new_groups:
-                new_groups[count].append(item)
+            if len(replaced) == 0:
+                implicants.add(item1)
             else:
-                new_groups[count] = [item]
+                new_bits.update(replaced)
 
-        prev_groups = groups
-        groups = new_groups
+        prev_bits = bits
+        bits = new_bits
 
     vars = []
     for s in implicants:
