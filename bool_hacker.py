@@ -349,16 +349,23 @@ def sheffer(sdnf: BooleanExpression):
                 item[j] = f'({s} {TOKEN_SHEFFER} {s})'
 
     res = []
-    for item in sheffer_sdnf:
-        s = f' {TOKEN_SHEFFER} '.join(item)
-        res.append(s)
+    for i in range(len(sdnf)):
+        while len(sheffer_sdnf[i]) > 1:
+            sheffer_sdnf[i][
+                0] = f'(({sheffer_sdnf[i][0]} {TOKEN_SHEFFER} {sheffer_sdnf[i][1]}) {TOKEN_SHEFFER} ({sheffer_sdnf[i][0]} {TOKEN_SHEFFER} {sheffer_sdnf[i][1]}))'
+            del sheffer_sdnf[i][1]
+        res.extend(sheffer_sdnf[i])
 
-    final = []
-    for item in res:
-        s = f'(({item}) {TOKEN_SHEFFER} ({item}))'
-        final.append(s)
+    if len(sheffer_sdnf) > 1:
+        final = []
 
-    final_res = f' {TOKEN_SHEFFER} '.join(final)
+        for item in res:
+            s = f'(({item}) {TOKEN_SHEFFER} ({item}))'
+            final.append(s)
+
+        final_res = f' {TOKEN_SHEFFER} '.join(final)
+    else:
+        final_res = f' {TOKEN_SHEFFER} '.join(sheffer_sdnf[0])
 
     print_step('Sheffer', final_res)
 

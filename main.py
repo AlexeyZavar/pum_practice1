@@ -1,4 +1,4 @@
 from bool_hacker import hack
 from tests import *
 
-hack(wiki2)
+hack(medium3)
