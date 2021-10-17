@@ -210,7 +210,7 @@ def print_dnf_step(method: str, dnf_expressions: BooleanExpression):
 def regenerate_table(simplified: BooleanExpression, hacked_table: List[List[bool]], arg_names: List[str]):
     hacked_table.clear()
 
-    exp = stringify_dnf(simplified).replace(TOKEN_NOT, 'not ').replace('*', ' and ').replace('+', ' or ')
+    exp = stringify_dnf(simplified).replace(TOKEN_NOT, 'not ').replace(TOKEN_AND, ' and ').replace(TOKEN_OR, ' or ')
     f = eval(f'''lambda {", ".join(arg_names)}: {exp}''')
 
     for item in generate_args(len(arg_names)):

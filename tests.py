@@ -1,3 +1,6 @@
+from bool_hacker import hack
+
+
 def dummy1(a):
     return True
 
@@ -115,3 +118,27 @@ def long_running2(x, y, z, t, e, w):
 
 def long_running3(x, y, z, t, e, w, a):
     return (x and y or z) or (t and w) or w and (e and x) or (e and a)
+
+
+def run_all():
+    import inspect
+    import sys
+    fs = [obj for name, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj)]
+    print(fs)
+
+    fucked = []
+    i = 0
+    for func in fs:
+        if 'run_all' in str(func) or 'logo' in str(func):
+            continue
+
+        i += 1
+
+        try:
+            hack(func)
+        except KeyboardInterrupt:
+            break
+        except:
+            print('hola! i\'m fucked!', func)
+
+    print(f'total: {i}, fucked length: {len(fucked)}, fucked: {fucked}')
