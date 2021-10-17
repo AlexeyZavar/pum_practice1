@@ -43,7 +43,7 @@ RESET = RESET_COLOR + RESET_FONT
 # Setup environment
 # imported from https://github.com/Radolyn/LogManager/tree/master/LogManager.py
 #
-if sys.platform == "win32":
+if sys.platform == 'win32':
     kernel32 = ctypes.windll.kernel32
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
@@ -210,7 +210,7 @@ def print_dnf_step(method: str, dnf_expressions: BooleanExpression):
 def regenerate_table(simplified: BooleanExpression, hacked_table: List[List[bool]], arg_names: List[str]):
     hacked_table.clear()
 
-    exp = stringify_dnf(simplified).replace(TOKEN_NOT, "not ").replace('*', ' and ').replace('+', ' or ')
+    exp = stringify_dnf(simplified).replace(TOKEN_NOT, 'not ').replace('*', ' and ').replace('+', ' or ')
     f = eval(f'''lambda {", ".join(arg_names)}: {exp}''')
 
     for item in generate_args(len(arg_names)):
@@ -323,6 +323,7 @@ def simplify(arg_names: List[str], dnf_expressions: BooleanExpression):
         vars.append(impl)
 
     step2 = [[False for _ in dnf_expressions] for _ in vars]
+    # step2 = [[all(arg in orig for arg in impl) for j, orig in enumerate(dnf_expressions)] for i, impl in enumerate(vars)]
 
     for i, impl in enumerate(vars):
         for j, orig in enumerate(dnf_expressions):
