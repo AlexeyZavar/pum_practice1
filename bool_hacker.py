@@ -20,7 +20,7 @@ UNDERLINE = '\x1b[4m'
 #
 # Text color
 #
-GREEN = '\x1b[32m'
+LIGHT_GREEN = '\x1b[92m'
 LIGHT_BLUE = '\x1b[36m'
 LIGHT_YELLOW = '\x1b[93m'
 LIGHT_RED = '\x1b[91m'
@@ -29,7 +29,7 @@ LIGHT_RED = '\x1b[91m'
 # Mixes
 #
 STEP_DEC = BOLD + LIGHT_YELLOW
-RESULT_DEC = UNDERLINE + GREEN
+RESULT_DEC = UNDERLINE + LIGHT_GREEN
 HEADER = STEP_DEC
 
 #
@@ -87,7 +87,7 @@ def timeit(f: FunctionType):
 def logo(f: FunctionType):
     def wrapper(*args, **kwargs):
         print('''
-Bool_hacker by
+bool_hacker by
            _                     ______                     
      /\   | |                   |___  /                     
     /  \  | | _____  _____ _   _   / / __ ___   ____ _ _ __ 
@@ -332,7 +332,6 @@ def simplify(arg_names: List[str], dnf_expressions: BooleanExpression):
     sdnf, fucked = petric(vars, step2)
 
     for item in fucked:
-        print('fuck iter', item, dnf_expressions[item])
         sdnf.append(dnf_expressions[item])
 
     return sdnf

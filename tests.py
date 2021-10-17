@@ -58,10 +58,6 @@ def medium6(a, b, c, d, e, f):
     return a and not b or c and not d and e and f
 
 
-def ultimate1(a, b, c, d, e, f, g, h, j, k, i, o, p, u, y, t, r, z, v, n, m, s):
-    return a and b or not c and not d and e and f or g and h and j or not k and i
-
-
 def ege1(x, y, z, w):
     return (w or y) and (y or not x) and (z or not y)
 

@@ -1,4 +1,4 @@
 from bool_hacker import hack
 from tests import *
 
-hack(medium3)
+hack(long_running3)
